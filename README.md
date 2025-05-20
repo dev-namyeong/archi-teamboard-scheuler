@@ -46,4 +46,4 @@
 원하는 디렉토리에서 터미널을 열고 아래 명령어를 실행하세요.
 
    ```bash
-   git clone https://github.com/dev-namyeong/teamboard-sche
+   git remote set-url origin https://github.com/dev-namyeong/archi-teamboard-scheduler.git

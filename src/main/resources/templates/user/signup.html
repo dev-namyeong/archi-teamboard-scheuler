@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>회원가입</title>
+    <link rel="stylesheet" th:href="@{/css/signup.css}">
+</head>
+<body>
+<h2>회원가입</h2>
+<form th:action="@{/user/signup}" method="post" th:object="${userDto}" id="signupForm" class="signup-container signup-form">
+    <label>아이디
+        <input type="text" th:field="*{username}" id="username" required>
+        <button type="button" id="checkUsernameBtn">중복확인</button>
+    </label>
+    <div id="usernameCheckResult" style="color: red; font-size: 14px;"></div>
+
+    <label>비밀번호 <input type="password" th:field="*{password}" required></label><br>
+    <label>이름  <input type="text" th:field="*{name}" required></label><br>
+
+    <label>부서
+        <select th:field="*{departmentId}" required>
+            <option value="">부서를 선택하세요</option>
+            <option th:each="dept : ${departments}"
+                    th:value="${dept.id}"
+                    th:text="${dept.name}">
+            </option>
+        </select>
+    </label><br>
+
+    <label for="position">직책</label>
+    <select id="position" th:field="*{position}" required>
+        <option value="">직책을 선택하세요</option>
+        <option value="소장">소장</option>
+        <option value="전무">전무</option>
+        <option value="이사">이사</option>
+        <option value="부장">부장</option>
+        <option value="차장">차장</option>
+        <option value="과장">과장</option>
+        <option value="대리">대리</option>
+        <option value="계장">계장</option>
+        <option value="사원">사원</option>
+    </select><br>
+
+    <div class="form-group">
+        <label for="phone1">전화번호</label>
+        <div class="phone-input">
+            <input type="text" id="phone1" maxlength="3" size="3" required> -
+            <input type="text" id="phone2" maxlength="4" size="4" required> -
+            <input type="text" id="phone3" maxlength="4" size="4" required>
+        </div>
+    </div>
+
+    <!-- 숨겨진 필드로 합쳐진 전화번호 전송 -->
+    <input type="hidden" th:field="*{phoneNumber}" id="fullPhoneNumber">
+
+    <button type="submit">회원가입</button>
+</form>
+
+<script>
+    const form = document.getElementById("signupForm");
+    const signupBtn = form.querySelector("button[type='submit']");
+    const usernameInput = document.getElementById("username");
+    const checkUsernameBtn = document.getElementById("checkUsernameBtn");
+    const resultDiv = document.getElementById("usernameCheckResult");
+
+    // 초기 상태
+    signupBtn.disabled = true;
+
+    // 전화번호 합치기
+    form.addEventListener("submit", function (e) {
+        const phone1 = document.getElementById("phone1").value;
+        const phone2 = document.getElementById("phone2").value;
+        const phone3 = document.getElementById("phone3").value;
+        const fullPhone = `${phone1}-${phone2}-${phone3}`;
+        document.getElementById("fullPhoneNumber").value = fullPhone;
+    });
+
+    // 중복확인 버튼 클릭
+    checkUsernameBtn.addEventListener("click", function () {
+        const username = usernameInput.value;
+        if (!username) {
+            alert("아이디를 입력하세요!");
+            return;
+        }
+
+        fetch(`/api/check-username?username=${encodeURIComponent(username)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    resultDiv.textContent = "이미 사용 중인 아이디입니다.";
+                    resultDiv.style.color = "red";
+                    signupBtn.disabled = true;
+                } else {
+                    resultDiv.textContent = "사용 가능한 아이디입니다!";
+                    resultDiv.style.color = "green";
+                    signupBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error("에러 발생:", error);
+            });
+    });
+
+    usernameInput.addEventListener("input", function () {
+        if (usernameInput.value.trim() !== "") {
+            resultDiv.textContent = "중복확인을 다시 해주세요.";
+            resultDiv.style.color = "orange";
+        } else {
+            resultDiv.textContent = ""; // 아무것도 안 보여줌
+        }
+        signupBtn.disabled = true;
+    });
+</script>
+</body>
+</html>

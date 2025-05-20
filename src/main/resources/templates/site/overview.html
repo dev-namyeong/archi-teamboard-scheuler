@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>현장개요</title>
+    <link rel="stylesheet" href="/css/home.css">
+</head>
+<body>
+
+<!-- 상단 헤더 -->
+<header style="display: flex; justify-content: flex-end; align-items: center; padding: 10px;">
+    <a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
+
+    <form action="/logout" method="post" style="margin: 0;">
+        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+        <button type="submit" style="background-color: transparent; border: none; color: #007bff; cursor: pointer;">
+            로그아웃
+        </button>
+    </form>
+</header>
+
+<!-- ✅ 현장개요 제목 메뉴 위로 -->
+<div style="padding: 20px 40px 10px 40px;"> <!-- 위아래 padding 조정 -->
+    <h2 style="margin: 0 0 10px 0;">현장 개요</h2> <!-- h2 위는 0, 아래는 10px -->
+</div>
+
+<!-- ✅ 메뉴 -->
+<nav>
+    <div th:each="menu : ${menus}">
+        <a href="#" th:attr="data-menu-id=${menu.id}" th:text="${menu.name}" onclick="toggleSubMenu(event)"></a>
+    </div>
+</nav>
+
+<!-- ✅ 서브 메뉴 -->
+<div th:each="menu : ${menus}" class="submenu-container" th:attr="id='submenu-' + ${menu.id}">
+    <div class="submenu" th:if="${menu.subMenus != null and !menu.subMenus.isEmpty()}">
+        <div th:each="sub : ${menu.subMenus}">
+            <a th:if="${sub.name == '연차캘린더'}"
+               th:text="${sub.name}"
+               th:href="@{/schedule/calendar}"></a>
+
+            <a th:if="${sub.name != '연차캘린더' and sub.board != null}"
+               th:text="${sub.name}"
+               th:href="@{'/boards/submenu/' + ${sub.id}}"></a>
+
+            <a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath != null}"
+               th:text="${sub.name}"
+               th:href="@{'/submenu/view/' + ${sub.id}}"></a>
+
+            <a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath == null}"
+               href="#" th:text="${sub.name}"></a>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ 현장개요 이미지 본문 (메뉴 아래) -->
+<main style="padding: 40px;">
+    <img th:src="@{/images/site/overview.jpg}" alt="현장 개요 이미지" style="max-width: 800%;">
+</main>
+
+<!-- ✅ footer -->
+<footer style="text-align: center; margin-top: 40px;">
+    <p>© 2025 회사 이름</p>
+</footer>
+
+<!-- ✅ toggleSubMenu 스크립트 -->
+<script>
+    function toggleSubMenu(event) {
+        event.preventDefault();
+        const menuId = event.target.getAttribute("data-menu-id");
+        const subMenus = document.querySelectorAll(".submenu-container");
+
+        subMenus.forEach((subMenu) => {
+            if (subMenu.id === "submenu-" + menuId) {
+                subMenu.classList.toggle("active");
+            } else {
+                subMenu.classList.remove("active");
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

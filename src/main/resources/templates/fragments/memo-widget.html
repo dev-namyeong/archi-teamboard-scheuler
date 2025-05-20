@@ -1,0 +1,181 @@
+<div th:fragment="memoWidget">
+    <div id="memo" style="
+        position: fixed;
+        top: 50px;
+        left: 50px;
+        width: 400px;
+        height: 200px;
+        background-color: #fffbea;
+        border: 1px solid #ccc;
+        padding: 10px;
+        z-index: 1000;
+        box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+        cursor: move;
+        user-select: none;
+    ">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong>📒 금일현장작업현황 외 주요공지사항</strong>
+            <div>
+                <button onclick="saveMemo()" style="font-size: 12px;">저장</button>
+                <button onclick="toggleHistoryPopup()" style="font-size: 12px;">이력 보기</button>
+            </div>
+        </div>
+        <textarea id="memoContent" style="width: 100%; height: 150px; border: none; resize: none;"></textarea>
+        <div id="saveStatus" style="font-size: 12px; color: green; display: none; margin-top: 4px;">저장 완료!</div>
+    </div>
+
+    <!-- 이력 팝업 -->
+    <div id="memoHistoryPopup" style="
+        display: none;
+        position: fixed;
+        top: 100px;
+        left: 100px;
+        width: 400px;
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #999;
+        padding: 15px;
+        z-index: 2000;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+      ">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <strong>📜 메모 이력</strong>
+            <button onclick="toggleHistoryPopup()" style="font-size: 12px;">닫기</button>
+        </div>
+        <ul id="memoHistoryList" style="font-size: 13px; list-style: none; padding: 0;"></ul>
+    </div>
+
+    <script>
+        // 메모 불러오기
+        window.onload = function () {
+          fetch('/memo')
+            .then(res => res.json())
+            .then(data => {
+              document.getElementById('memoContent').value = data.content || '';
+            })
+            .catch(() => {
+              document.getElementById('memoContent').value = '';
+            });
+        };
+
+        // 저장
+        function saveMemo() {
+          const content = document.getElementById('memoContent').value;
+
+          const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+          const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+          console.log("CSRF Header:", header, "Token:", token);
+
+          fetch('/memo', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              [header]: token
+            },
+            body: JSON.stringify({ content }),
+            credentials: 'same-origin'
+          })
+          .then(res => {
+            if (res.ok) {
+              showSaveStatus();
+            } else {
+              alert('저장에 실패했습니다.');
+            }
+          })
+          .catch(() => alert('서버와 통신 중 오류가 발생했습니다.'));
+        }
+
+        function showSaveStatus() {
+          const status = document.getElementById('saveStatus');
+          status.style.display = 'block';
+          setTimeout(() => status.style.display = 'none', 1500);
+        }
+
+        // 드래그
+  const memo = document.getElementById('memo');
+  const historyPopup = document.getElementById('memoHistoryPopup');
+  let isDragging = false, offsetX, offsetY, initialMemoLeft, initialMemoTop;
+
+  memo.addEventListener('mousedown', function (e) {
+    if (e.target === document.getElementById('memoContent') || e.target.tagName === 'BUTTON') {
+      return;
+    }
+    isDragging = true;
+    offsetX = e.clientX - memo.offsetLeft;
+    offsetY = e.clientY - memo.offsetTop;
+    initialMemoLeft = memo.offsetLeft;
+    initialMemoTop = memo.offsetTop;
+    memo.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', function (e) {
+    if (isDragging) {
+      const newLeft = e.clientX - offsetX;
+      const newTop = e.clientY - offsetY;
+
+      const deltaX = newLeft - initialMemoLeft;
+      const deltaY = newTop - initialMemoTop;
+
+      memo.style.left = newLeft + 'px';
+      memo.style.top = newTop + 'px';
+
+      if (historyPopup.style.display === 'block') {
+        const popupLeft = parseInt(historyPopup.style.left || 0);
+        const popupTop = parseInt(historyPopup.style.top || 0);
+        historyPopup.style.left = (popupLeft + deltaX) + 'px';
+        historyPopup.style.top = (popupTop + deltaY) + 'px';
+      }
+
+      initialMemoLeft = newLeft;
+      initialMemoTop = newTop;
+    }
+  });
+
+  document.addEventListener('mouseup', function () {
+    isDragging = false;
+    memo.style.userSelect = 'auto';
+  });
+
+
+        // 이력 팝업 토글
+  function toggleHistoryPopup() {
+    const popup = document.getElementById('memoHistoryPopup');
+    const memo = document.getElementById('memo');
+
+    if (popup.style.display === 'none') {
+      loadMemoHistory();
+      popup.style.display = 'block';
+
+      // 메모 오른쪽에 위치
+      const memoRect = memo.getBoundingClientRect();
+      popup.style.left = (memoRect.left + memo.offsetWidth + 10) + 'px';
+      popup.style.top = memoRect.top + 'px';
+    } else {
+      popup.style.display = 'none';
+    }
+  }
+
+        // 이력 로드
+        function loadMemoHistory() {
+          fetch('/memo/history')
+            .then(res => res.json())
+            .then(data => {
+              const list = document.getElementById('memoHistoryList');
+              list.innerHTML = '';
+              data.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<div style="margin-bottom: 5px;">
+                  <b>${item.modifiedBy}</b> <span style="color: gray;">(${new Date(item.modifiedAt).toLocaleString()})</span><br/>
+                  <div style="white-space: pre-wrap; border-left: 2px solid #ccc; padding-left: 6px; margin-top: 2px;">${item.content}</div>
+                </div>`;
+                list.appendChild(li);
+              });
+            })
+            .catch(() => {
+              alert("이력 데이터를 불러오는 중 오류 발생");
+            });
+        }
+    </script>
+</div>

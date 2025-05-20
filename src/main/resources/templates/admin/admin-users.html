@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>사용자 목록</title>
+</head>
+<body>
+
+<!-- 상단 헤더 -->
+<header style="display: flex; justify-content: flex-end; align-items: center; padding: 10px;">
+	<a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
+	
+	<form action="/logout" method="post" style="margin: 0;">
+		<input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+		<button type="submit" style="background-color: transparent; border: none; color: #007bff; cursor: pointer;">
+			로그아웃
+		</button>
+	</form>
+</header>
+
+<h1>사용자 목록</h1>
+<table>
+	<thead>
+	<tr>
+		<th>이름</th>
+		<th>아이디</th>
+		<th>상태</th>
+		<th>승인</th>
+	</tr>
+	</thead>
+	<tbody>
+	<!-- 사용자 목록 반복 -->
+	<th:block th:each="user : ${users}">
+		<tr>
+			<td th:text="${user.name}"></td>
+			<td th:text="${user.username}"></td>
+			<td th:text="${user.isApproved ? '승인됨' : '승인 대기'}"></td>
+			<td>
+				<a th:href="@{/admin/approve/{id}(id=${user.userId})}" th:text="승인"></a>
+			</td>
+		</tr>
+	</th:block>
+	</tbody>
+</table>
+</body>
+</html>

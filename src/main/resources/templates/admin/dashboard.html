@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>관리자 대시보드</title>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- 상단 헤더 -->
+<header style="display: flex; justify-content: flex-end; align-items: center; padding: 10px;">
+	<a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
+	
+	<form action="/logout" method="post" style="margin: 0;">
+		<input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+		<button type="submit" style="background-color: transparent; border: none; color: #007bff; cursor: pointer;">
+			로그아웃
+		</button>
+	</form>
+</header>
+
+<header>
+	<h1>관리자 대시보드</h1>
+</header>
+
+<main style="padding: 20px;">
+	<h2>관리자 기능 선택</h2>
+	<ul>
+		<li><a href="/admin/users">회원가입 승인</a></li>
+		<li><a href="/admin/submenus/create">하위 메뉴 생성</a></li>
+	</ul>
+</main>
+
+<footer style="margin-top: 40px;">
+	<p>© 2025 회사 이름</p>
+</footer>
+
+</body>
+</html>

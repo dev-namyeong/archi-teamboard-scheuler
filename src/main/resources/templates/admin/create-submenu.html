@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>하위 메뉴 생성</title>
+</head>
+<body>
+
+<!-- 상단 헤더 -->
+<header style="display: flex; justify-content: flex-end; align-items: center; padding: 10px;">
+	<a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
+	
+	<form action="/logout" method="post" style="margin: 0;">
+		<input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+		<button type="submit" style="background-color: transparent; border: none; color: #007bff; cursor: pointer;">
+			로그아웃
+		</button>
+	</form>
+</header>
+
+<h2>하위 메뉴 생성</h2>
+
+<form th:action="@{/admin/submenus/create}" method="post">
+	<label for="menuId">상위 메뉴:</label>
+	<select name="menuId" id="menuId" required>
+		<option th:each="menu : ${menus}"
+		        th:value="${menu.id}"
+		        th:text="${menu.name}">
+		</option>
+	</select>
+	<br/><br/>
+	
+	<label for="name">하위 메뉴 이름:</label>
+	<input type="text" id="name" name="name" required/>
+	<br/><br/>
+	
+	<label for="isBoard">게시판 연결:</label>
+	<input type="checkbox" id="isBoard" name="isBoard" onchange="toggleTemplatePath()"/>
+	<br/><br/>
+	
+	<!-- ✅ 정적 템플릿 경로 입력창 (게시판이 아닐 때만 보임) -->
+	<div id="templatePathDiv">
+		<label for="templatePath">정적 템플릿 경로:</label>
+		<input type="text" id="templatePath" name="templatePath" placeholder="예: site/overview"/>
+		<br/><br/>
+	</div>
+	
+	<label for="uploadScope">업로드 허용 부서:</label><br/>
+	<select name="uploadScope" id="uploadScope" multiple size="5">
+		<option value="ALL">전체</option> <!-- ✅ 추가 -->
+		<option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"></option>
+	</select>
+	<br/><br/>
+	
+	<button type="submit">생성</button>
+</form>
+
+<!-- ✅ 자바스크립트 추가 -->
+<script>
+	function toggleTemplatePath() {
+		const isBoard = document.getElementById("isBoard").checked;
+		const templateDiv = document.getElementById("templatePathDiv");
+
+		if (isBoard) {
+			templateDiv.style.display = "none";
+		} else {
+			templateDiv.style.display = "block";
+		}
+	}
+
+	// 페이지 로드 시 초기 설정
+	window.onload = toggleTemplatePath;
+</script>

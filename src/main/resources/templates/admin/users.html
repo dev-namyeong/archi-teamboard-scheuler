@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>회원가입 승인</title>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- 상단 헤더 -->
+<header style="display: flex; justify-content: flex-end; align-items: center; padding: 10px;">
+	<a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
+	
+	<form action="/logout" method="post" style="margin: 0;">
+		<input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+		<button type="submit" style="background-color: transparent; border: none; color: #007bff; cursor: pointer;">
+			로그아웃
+		</button>
+	</form>
+</header>
+
+<header>
+	<h1>회원가입 승인</h1>
+	<nav>
+		<a href="/admin/dashboard">← 관리자 대시보드로 돌아가기</a>
+	</nav>
+</header>
+
+<main style="padding: 20px;">
+	<h2>승인 대기 중인 회원 목록</h2>
+	
+	<table border="1" cellpadding="10" cellspacing="0">
+		<thead>
+		<tr>
+			<th>이름</th>
+			<th>아이디</th>
+			<th>직책</th>
+			<th>부서</th>
+			<th>전화번호</th>
+			<th>승인</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr th:each="user : ${pendingUsers}">
+			<td th:text="${user.name}">이름</td>
+			<td th:text="${user.username}">아이디</td>
+			<td th:text="${user.position}">직책</td>
+			<td th:text="${user.department.name}">부서</td>
+			<td th:text="${user.phoneNumber}">전화번호</td>
+			<td>
+				<form th:action="@{/admin/approve}" method="post">
+					<input type="hidden" name="userId" th:value="${user.userId}"/>
+					<button type="submit">승인</button>
+				</form>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+	
+	<div th:if="${pendingUsers.size() == 0}">
+		<p>승인 대기 중인 사용자가 없습니다.</p>
+	</div>
+</main>
+
+<footer style="margin-top: 40px;">
+	<p>© 2025 회사 이름</p>
+</footer>
+
+</body>
+</html>

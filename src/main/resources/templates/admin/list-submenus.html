@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>하위 메뉴 목록 및 관리</title>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header style="display: flex; justify-content: space-between; align-items: center; padding: 10px;">
+	<!-- 왼쪽: 관리자 대시보드 -->
+	<a href="/admin/dashboard" style="text-decoration: none; color: #007bff;">← 관리자 대시보드</a>
+	
+	<!-- 오른쪽: Home + 로그아웃 버튼 -->
+	<div style="display: flex; align-items: center;">
+		<a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
+		<form action="/logout" method="post" style="margin: 0;">
+			<input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+			<button type="submit" style="background: none; border: none; color: #007bff; cursor: pointer;">
+				로그아웃
+			</button>
+		</form>
+	</div>
+</header>
+
+<main style="padding: 20px;">
+	<h2>하위 메뉴 목록 및 관리</h2>
+	<table border="1" cellspacing="0" cellpadding="8" style="width: 100%; border-collapse: collapse;">
+		<thead>
+		<tr style="background-color: #f0f0f0;">
+			<th>이름</th>
+			<th>게시판 여부</th>
+			<th>템플릿 경로</th>
+			<th>활성 상태</th>
+			<th>관리</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr th:each="sub : ${submenus}">
+			<td th:text="${sub.name}">하위메뉴명</td>
+			<td th:text="${sub.isBoard} ? '예' : '아니오'"></td>
+			<td th:text="${sub.templatePath} ?: '-'"></td>
+			<td th:text="${sub.isActive} ? '활성' : '비활성'"></td>
+			<td>
+				<!-- 비활성화 상태인 경우: '활성화' 버튼만 -->
+				<form th:if="${!sub.isActive}" th:action="@{'/admin/submenus/reactivate/' + ${sub.id}}" method="post"
+				      style="display:inline;">
+					<button type="submit">활성화</button>
+				</form>
+				
+				<!-- 활성 상태인 경우: '비활성화', '삭제' 버튼 -->
+				<form th:if="${sub.isActive}" th:action="@{'/admin/submenus/deactivate/' + ${sub.id}}" method="post"
+				      style="display:inline;">
+					<button type="submit">비활성화</button>
+				</form>
+				<form th:if="${sub.isActive}" th:action="@{'/admin/submenus/delete/' + ${sub.id}}" method="post"
+				      onsubmit="return confirm('정말 삭제하시겠습니까?');" style="display:inline;">
+					<button type="submit">삭제</button>
+				</form>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+	
+	<div style="margin-top: 20px;">
+		<a href="/admin/submenus/create" style="text-decoration: none; color: #007bff;">➕ 새로운 하위 메뉴 추가</a>
+	</div>
+</main>
+
+<footer style="text-align: center; margin-top: 40px;">
+	<p>© 2025 회사 이름</p>
+</footer>
+
+</body>
+</html>

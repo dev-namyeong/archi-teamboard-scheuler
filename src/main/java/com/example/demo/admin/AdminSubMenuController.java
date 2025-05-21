@@ -5,6 +5,8 @@ import com.example.demo.department.DepartmentInitializer;
 import com.example.demo.department.DepartmentRepository;
 import com.example.demo.menus.Menus;
 import com.example.demo.menus.MenusRepository;
+import com.example.demo.submenus.SubMenus;
+import com.example.demo.submenus.SubMenusRepository;
 import com.example.demo.submenus.SubmenusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -20,6 +22,7 @@ import java.util.List;
 public class AdminSubMenuController {
 
     private final MenusRepository menusRepository;
+    private final SubMenusRepository subMenusRepository;
     private final SubmenusService submenusService;
     private final DepartmentRepository departmentRepository;
 
@@ -58,6 +61,34 @@ public class AdminSubMenuController {
         submenusService.createSubMenuWithBoard(menu, name, isBoard, uploadDepartments, templatePath);
 
         return "redirect:/home";
+    }
+
+    @GetMapping("/list")
+    public String listSubMenus(Model model) {
+        List<SubMenus> all = subMenusRepository.findAll();
+        model.addAttribute("submenus", all);
+        return "admin/list-submenus";
+    }
+
+    // 비활성화 처리
+    @PostMapping("/deactivate/{id}")
+    public String deactivateSubMenu(@PathVariable Long id) {
+        submenusService.deactivateSubMenu(id);
+        return "redirect:/admin/submenus/list";
+    }
+
+    // 재활성화 처리
+    @PostMapping("/reactivate/{id}")
+    public String reactivateSubMenu(@PathVariable Long id) {
+        submenusService.reactivateSubMenu(id);
+        return "redirect:/admin/submenus/list";
+    }
+
+    // 물리 삭제 처리
+    @PostMapping("/delete/{id}")
+    public String deleteSubMenu(@PathVariable Long id) {
+        submenusService.deleteSubMenu(id);
+        return "redirect:/admin/submenus/list";
     }
 }
 

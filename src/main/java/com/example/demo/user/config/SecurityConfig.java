@@ -47,7 +47,13 @@ public class SecurityConfig {
                         .invalidateHttpSession(true) // 세션 무효화
                         .clearAuthentication(true) // 인증 정보 삭제
                         .permitAll() // 로그아웃을 모든 사용자에게 허용
+
+                )
+                // ✅ iframe 허용 설정 추가
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())  // 같은 origin에서는 iframe 허용
                 );
+        
         return http.build();
     }
 }

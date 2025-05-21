@@ -1,133 +1,133 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title th:text="${boardName}">게시판</title>
-    <link rel="stylesheet" href="/css/home.css">
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ccc;
-            text-align: center;
-        }
-        th {
-            background-color: #f5f5f5;
-        }
-        .write-button {
-            display: inline-block;
-            margin: 10px 0;
-            padding: 8px 16px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-        .write-button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+	<meta charset="UTF-8">
+	<title th:text="${boardName}">게시판</title>
+	<link rel="stylesheet" href="/css/home.css">
+	<style>
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 20px;
+		}
+		th, td {
+			padding: 10px;
+			border: 1px solid #ccc;
+			text-align: center;
+		}
+		th {
+			background-color: #f5f5f5;
+		}
+		.write-button {
+			display: inline-block;
+			margin: 10px 0;
+			padding: 8px 16px;
+			background-color: #007bff;
+			color: white;
+			text-decoration: none;
+			border-radius: 4px;
+		}
+		.write-button:hover {
+			background-color: #0056b3;
+		}
+	</style>
 </head>
 <body>
 
 <!-- 상단 헤더 -->
 <header style="display: flex; justify-content: flex-end; align-items: center; padding: 10px;">
-    <a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
-
-    <form action="/logout" method="post" style="margin: 0;">
-        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-        <button type="submit" style="background-color: transparent; border: none; color: #007bff; cursor: pointer;">
-            로그아웃
-        </button>
-    </form>
+	<a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
+	
+	<form action="/logout" method="post" style="margin: 0;">
+		<input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+		<button type="submit" style="background-color: transparent; border: none; color: #007bff; cursor: pointer;">
+			로그아웃
+		</button>
+	</form>
 </header>
 
 <h2 th:text="${boardName}">게시판 이름</h2>
 
 <!-- ✅ 메뉴 -->
 <nav>
-    <div th:each="menu : ${menus}">
-        <a href="#" th:attr="data-menu-id=${menu.id}" th:text="${menu.name}" onclick="toggleSubMenu(event)"></a>
-    </div>
+	<div th:each="menu : ${menus}">
+		<a href="#" th:attr="data-menu-id=${menu.id}" th:text="${menu.name}" onclick="toggleSubMenu(event)"></a>
+	</div>
 </nav>
 
 <!-- ✅ 서브 메뉴 -->
 <div th:each="menu : ${menus}" class="submenu-container" th:attr="id='submenu-' + ${menu.id}">
-    <div class="submenu" th:if="${menu.subMenus != null and !menu.subMenus.isEmpty()}">
-        <div th:each="sub : ${menu.subMenus}">
-            <a th:if="${sub.name == '연차캘린더'}"
-               th:text="${sub.name}"
-               th:href="@{/schedule/calendar}"></a>
-
-            <a th:if="${sub.name != '연차캘린더' and sub.board != null}"
-               th:text="${sub.name}"
-               th:href="@{'/boards/submenu/' + ${sub.id}}"></a>
-
-            <a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath != null}"
-               th:text="${sub.name}"
-               th:href="@{'/submenu/view/' + ${sub.id}}"></a>
-
-            <a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath == null}"
-               href="#" th:text="${sub.name}"></a>
-        </div>
-    </div>
+	<div class="submenu" th:if="${menu.subMenus != null and !menu.subMenus.isEmpty()}">
+		<div th:each="sub : ${menu.subMenus}" th:if="${sub.isActive}">
+			<a th:if="${sub.name == '연차캘린더'}"
+			   th:text="${sub.name}"
+			   th:href="@{/schedule/calendar}"></a>
+			
+			<a th:if="${sub.name != '연차캘린더' and sub.board != null}"
+			   th:text="${sub.name}"
+			   th:href="@{'/boards/submenu/' + ${sub.id}}"></a>
+			
+			<a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath != null}"
+			   th:text="${sub.name}"
+			   th:href="@{'/submenu/view/' + ${sub.id}}"></a>
+			
+			<a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath == null}"
+			   href="#" th:text="${sub.name}"></a>
+		</div>
+	</div>
 </div>
 
 <!-- 글쓰기 버튼 -->
 <div th:if="${hasUploadPermission}">
-    <a th:href="@{/posts/submenu/{subMenuId}/write(subMenuId=${subMenuId})}" class="btn btn-primary">글쓰기</a>
+	<a th:href="@{/posts/submenu/{subMenuId}/write(subMenuId=${subMenuId})}" class="btn btn-primary">글쓰기</a>
 </div>
 
 <table>
-    <thead>
-    <tr>
-        <th>번호</th>
-        <th>제목</th>
-        <th>작성자</th>
-        <th>작성일</th>
-        <th>조회수</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="post, stat : ${posts}">
-        <td th:text="${stat.count}">1</td>
-        <td>
-            <a th:href="@{'/posts/' + ${post.id}}" th:text="${post.title}">제목</a>
-        </td>
-        <td th:text="${post.userName}">작성자</td>
-        <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}">2025-05-05</td>
-        <td>0</td> <!-- 조회수는 아직 미구현이므로 고정 -->
-    </tr>
-    <tr th:if="${#lists.isEmpty(posts)}">
-        <td colspan="5">등록된 게시글이 없습니다.</td>
-    </tr>
-    </tbody>
+	<thead>
+	<tr>
+		<th>번호</th>
+		<th>제목</th>
+		<th>작성자</th>
+		<th>작성일</th>
+		<th>조회수</th>
+	</tr>
+	</thead>
+	<tbody>
+	<tr th:each="post, stat : ${posts}">
+		<td th:text="${stat.count}">1</td>
+		<td>
+			<a th:href="@{'/posts/' + ${post.id}}" th:text="${post.title}">제목</a>
+		</td>
+		<td th:text="${post.userName}">작성자</td>
+		<td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}">2025-05-05</td>
+		<td>0</td> <!-- 조회수는 아직 미구현이므로 고정 -->
+	</tr>
+	<tr th:if="${#lists.isEmpty(posts)}">
+		<td colspan="5">등록된 게시글이 없습니다.</td>
+	</tr>
+	</tbody>
 </table>
 
 <!-- ✅ footer -->
 <footer style="text-align: center; margin-top: 40px;">
-    <p>© 2025 회사 이름</p>
+	<p>© 2025 회사 이름</p>
 </footer>
 
 <!-- ✅ toggleSubMenu 스크립트 -->
 <script>
-    function toggleSubMenu(event) {
-        event.preventDefault();
-        const menuId = event.target.getAttribute("data-menu-id");
-        const subMenus = document.querySelectorAll(".submenu-container");
+	function toggleSubMenu(event) {
+		event.preventDefault();
+		const menuId = event.target.getAttribute("data-menu-id");
+		const subMenus = document.querySelectorAll(".submenu-container");
 
-        subMenus.forEach((subMenu) => {
-            if (subMenu.id === "submenu-" + menuId) {
-                subMenu.classList.toggle("active");
-            } else {
-                subMenu.classList.remove("active");
-            }
-        });
-    }
+		subMenus.forEach((subMenu) => {
+			if (subMenu.id === "submenu-" + menuId) {
+				subMenu.classList.toggle("active");
+			} else {
+				subMenu.classList.remove("active");
+			}
+		});
+	}
 </script>
 
 </body>

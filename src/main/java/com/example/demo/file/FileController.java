@@ -51,18 +51,25 @@ public class FileController {
 
         // 확장자에 따라 Content-Type 설정
         String contentType;
-        if (fileName.toLowerCase().endsWith(".jpg") || fileName.toLowerCase().endsWith(".jpeg")) {
+        String lowerFileName = fileName.toLowerCase();
+
+        if (lowerFileName.endsWith(".jpg") || lowerFileName.endsWith(".jpeg")) {
             contentType = "image/jpeg";
-        } else if (fileName.toLowerCase().endsWith(".png")) {
+        } else if (lowerFileName.endsWith(".png")) {
             contentType = "image/png";
-        } else if (fileName.toLowerCase().endsWith(".gif")) {
+        } else if (lowerFileName.endsWith(".gif")) {
             contentType = "image/gif";
+        } else if (lowerFileName.endsWith(".pdf")) {
+            contentType = "application/pdf";
+        } else if (lowerFileName.endsWith(".txt") || lowerFileName.endsWith(".csv") || lowerFileName.endsWith(".log")) {
+            contentType = "text/plain";
         } else {
-            contentType = "application/octet-stream"; // 이미지가 아니면 다운로드
+            contentType = "application/octet-stream"; // 그 외 확장자는 다운로드
         }
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
                 .body(resource);
     }
 

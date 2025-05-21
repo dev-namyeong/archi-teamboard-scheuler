@@ -1,142 +1,142 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>홈페이지</title>
-    <link rel="stylesheet" th:href="@{/css/home.css}">
-
-    <!-- CSRF 토큰 -->
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+	<meta charset="UTF-8">
+	<title>홈페이지</title>
+	<link rel="stylesheet" th:href="@{/css/home.css}">
+	
+	<!-- CSRF 토큰 -->
+	<meta name="_csrf" th:content="${_csrf.token}"/>
+	<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
 </head>
 <body>
 
 <header>
-    <div style="display: flex; justify-content: space-between; padding: 20px;">
-        <!-- 관리자일 경우만 관리자 페이지 버튼 표시 -->
-        <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
-            <a href="/admin/dashboard">관리자 페이지</a>
-        </div>
-
-        <!-- 로그아웃 버튼 -->
-        <div>
-            <form action="/logout" method="post">
-                <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-                <button type="submit">로그아웃</button>
-            </form>
-        </div>
-    </div>
+	<div style="display: flex; justify-content: space-between; padding: 20px;">
+		<!-- 관리자일 경우만 관리자 페이지 버튼 표시 -->
+		<div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+			<a href="/admin/dashboard">관리자 페이지</a>
+		</div>
+		
+		<!-- 로그아웃 버튼 -->
+		<div>
+			<form action="/logout" method="post">
+				<input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+				<button type="submit">로그아웃</button>
+			</form>
+		</div>
+	</div>
 </header>
 
 <!-- 상단 메뉴 -->
 <nav>
-    <div th:each="menu : ${menus}">
-        <a href="#" th:attr="data-menu-id=${menu.id}" th:text="${menu.name}" onclick="toggleSubMenu(event)"></a>
-    </div>
+	<div th:each="menu : ${menus}">
+		<a href="#" th:attr="data-menu-id=${menu.id}" th:text="${menu.name}" onclick="toggleSubMenu(event)"></a>
+	</div>
 </nav>
 
 <!-- 서브 메뉴 영역 -->
 <div th:each="menu : ${menus}" class="submenu-container" th:attr="id='submenu-' + ${menu.id}">
-    <div class="submenu" th:if="${menu.subMenus != null and !menu.subMenus.isEmpty()}">
-        <div th:each="sub : ${menu.subMenus}">
-            <a th:if="${sub.name == '연차캘린더'}"
-               th:text="${sub.name}"
-               th:href="@{/schedule/calendar}"></a>
-
-            <!-- 게시판이 연결된 하위 메뉴일 경우 -->
-            <a th:if="${sub.name != '연차캘린더' and sub.board != null}"
-               th:text="${sub.name}"
-               th:href="@{'/boards/submenu/' + ${sub.id}}"></a>
-
-            <!-- 게시판이 아닌데 templatePath 있는 경우 -->
-            <a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath != null}"
-               th:text="${sub.name}"
-               th:href="@{'/submenu/view/' + ${sub.id}}"></a>
-
-            <!-- 아무것도 연결되지 않은 경우 -->
-            <a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath == null}"
-               href="#"
-               th:text="${sub.name}"></a>
-        </div>
-    </div>
+	<div class="submenu" th:if="${menu.subMenus != null and !menu.subMenus.isEmpty()}">
+		<div th:each="sub : ${menu.subMenus}" th:if="${sub.isActive}">
+			<a th:if="${sub.name == '연차캘린더'}"
+			   th:text="${sub.name}"
+			   th:href="@{/schedule/calendar}"></a>
+			
+			<!-- 게시판이 연결된 하위 메뉴일 경우 -->
+			<a th:if="${sub.name != '연차캘린더' and sub.board != null}"
+			   th:text="${sub.name}"
+			   th:href="@{'/boards/submenu/' + ${sub.id}}"></a>
+			
+			<!-- 게시판이 아닌데 templatePath 있는 경우 -->
+			<a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath != null}"
+			   th:text="${sub.name}"
+			   th:href="@{'/submenu/view/' + ${sub.id}}"></a>
+			
+			<!-- 아무것도 연결되지 않은 경우 -->
+			<a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath == null}"
+			   href="#"
+			   th:text="${sub.name}"></a>
+		</div>
+	</div>
 </div>
 
 <main style="padding: 40px;">
-    <h2>환영합니다. <span th:text="${name}"></span>님!</h2>
-
-    <!-- memo 위젯 포함 -->
-    <div th:replace="fragments/memo-widget :: memoWidget"></div>
-
-    <!-- 공지사항 게시판 박스 -->
-    <div class="notice-section" th:if="${notices != null}">
-        <h3>📢 공지사항 게시판</h3>
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-            <tr style="border-bottom: 1px solid #ccc;">
-                <th style="text-align: left; padding: 8px;">제목</th>
-                <th style="text-align: left; padding: 8px;">작성자</th>
-                <th style="text-align: left; padding: 8px;">작성일</th>
-                <th style="text-align: left; padding: 8px;">수정일</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:if="${notices.isEmpty()}">
-                <td colspan="4" style="text-align: center;">게시물이 없습니다.</td>
-            </tr>
-            <tr th:each="notice : ${notices}" style="border-bottom: 1px solid #eee;">
-                <td style="padding: 8px;">
-                    <a th:href="@{'/posts/' + ${notice.postId}}" th:text="${notice.title}"
-                       style="text-decoration: none; color: #333;"></a>
-                </td>
-                <td style="padding: 8px;" th:text="${notice.user.username}">작성자</td>
-                <td style="padding: 8px;" th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}">작성일</td>
-                <td style="padding: 8px;" th:text="${#temporals.format(notice.updatedAt, 'yyyy-MM-dd')}">수정일</td>
-            </tr>
-            </tbody>
-        </table>
-        <a th:href="@{'/boards/submenu/' + ${noticeSubMenuId}}" class="notice-more">+ 더보기</a>
-    </div>
-
-    <!-- 건설업 관련 사이트 -->
-    <div class="external-links" style="margin-top: 40px;">
-        <h3>🔗 건설업 관련 사이트</h3>
-        <ul style="list-style-type: none; padding-left: 0;">
-            <li style="margin: 10px 0;">
-                <a href="https://www.kosha.or.kr/kosha/index.do" target="_blank"
-                   style="text-decoration: none; color: #0056b3;">
-                    🛡️ 산업안전보건공단 바로가기
-                </a>
-            </li>
-            <li style="margin: 10px 0;">
-                <a href="https://homenet.kocea.or.kr:1443/kocea/koc-kr/index.do" target="_blank"
-                   style="text-decoration: none; color: #0056b3;">
-                    🏗️ 한국건설인협회 바로가기
-                </a>
-            </li>
-        </ul>
-    </div>
+	<h2>환영합니다. <span th:text="${name}"></span>님!</h2>
+	
+	<!-- memo 위젯 포함 -->
+	<div th:replace="fragments/memo-widget :: memoWidget"></div>
+	
+	<!-- 공지사항 게시판 박스 -->
+	<div class="notice-section" th:if="${notices != null}">
+		<h3>📢 공지사항 게시판</h3>
+		<table style="width: 100%; border-collapse: collapse;">
+			<thead>
+			<tr style="border-bottom: 1px solid #ccc;">
+				<th style="text-align: left; padding: 8px;">제목</th>
+				<th style="text-align: left; padding: 8px;">작성자</th>
+				<th style="text-align: left; padding: 8px;">작성일</th>
+				<th style="text-align: left; padding: 8px;">수정일</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr th:if="${notices.isEmpty()}">
+				<td colspan="4" style="text-align: center;">게시물이 없습니다.</td>
+			</tr>
+			<tr th:each="notice : ${notices}" style="border-bottom: 1px solid #eee;">
+				<td style="padding: 8px;">
+					<a th:href="@{'/posts/' + ${notice.postId}}" th:text="${notice.title}"
+					   style="text-decoration: none; color: #333;"></a>
+				</td>
+				<td style="padding: 8px;" th:text="${notice.user.username}">작성자</td>
+				<td style="padding: 8px;" th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}">작성일</td>
+				<td style="padding: 8px;" th:text="${#temporals.format(notice.updatedAt, 'yyyy-MM-dd')}">수정일</td>
+			</tr>
+			</tbody>
+		</table>
+		<a th:href="@{'/boards/submenu/' + ${noticeSubMenuId}}" class="notice-more">+ 더보기</a>
+	</div>
+	
+	<!-- 건설업 관련 사이트 -->
+	<div class="external-links" style="margin-top: 40px;">
+		<h3>🔗 건설업 관련 사이트</h3>
+		<ul style="list-style-type: none; padding-left: 0;">
+			<li style="margin: 10px 0;">
+				<a href="https://www.kosha.or.kr/kosha/index.do" target="_blank"
+				   style="text-decoration: none; color: #0056b3;">
+					🛡️ 산업안전보건공단 바로가기
+				</a>
+			</li>
+			<li style="margin: 10px 0;">
+				<a href="https://homenet.kocea.or.kr:1443/kocea/koc-kr/index.do" target="_blank"
+				   style="text-decoration: none; color: #0056b3;">
+					🏗️ 한국건설인협회 바로가기
+				</a>
+			</li>
+		</ul>
+	</div>
 </main>
 
 <footer style="text-align: center; margin-top: 40px;">
-    <p>© 2025 회사 이름</p>
+	<p>© 2025 회사 이름</p>
 </footer>
 
 <!-- 메뉴 클릭 시 하위 메뉴 보여주는 스크립트 -->
 <script>
-    function toggleSubMenu(event) {
-        event.preventDefault();
-        const menuId = event.target.getAttribute("data-menu-id");
-        const subMenus = document.querySelectorAll(".submenu-container");
+	function toggleSubMenu(event) {
+		event.preventDefault();
+		const menuId = event.target.getAttribute("data-menu-id");
+		const subMenus = document.querySelectorAll(".submenu-container");
 
-        subMenus.forEach((subMenu) => {
-            if (subMenu.id === "submenu-" + menuId) {
-                subMenu.classList.toggle("active");
-            } else {
-                subMenu.classList.remove("active");
-            }
-        });
-    }
+		subMenus.forEach((subMenu) => {
+			if (subMenu.id === "submenu-" + menuId) {
+				subMenu.classList.toggle("active");
+			} else {
+				subMenu.classList.remove("active");
+			}
+		});
+	}
 </script>
 
 </body>

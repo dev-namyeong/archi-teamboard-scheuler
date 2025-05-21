@@ -35,4 +35,28 @@ public class SubmenusService {
 
         return subMenus;
     }
+
+    @Transactional
+    public void deactivateSubMenu(Long subMenuId) {
+        SubMenus subMenus = subMenusRepository.findById(subMenuId)
+                .orElseThrow(() -> new IllegalArgumentException("서브메뉴를 찾을 수 없습니다."));
+        subMenus.setActive(false);
+        subMenusRepository.save(subMenus);
+    }
+
+    @Transactional
+    public void reactivateSubMenu(Long subMenuId) {
+        SubMenus subMenus = subMenusRepository.findById(subMenuId)
+                .orElseThrow(() -> new IllegalArgumentException("서브메뉴를 찾을 수 없습니다."));
+        subMenus.setActive(true);
+        subMenusRepository.save(subMenus);
+    }
+
+    @Transactional
+    public void deleteSubMenu(Long subMenuId) {
+        SubMenus subMenus = subMenusRepository.findById(subMenuId)
+                .orElseThrow(() -> new IllegalArgumentException("서브메뉴를 찾을 수 없습니다."));
+
+        subMenusRepository.delete(subMenus); // 물리 삭제
+    }
 }

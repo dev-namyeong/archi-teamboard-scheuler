@@ -47,12 +47,16 @@ public class SubMenus {
     @Column(name = "template_path", nullable = true)
     private String templatePath;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
     public SubMenus(Menus menu, String name, boolean isBoard, List<Department> uploadDepartments, String templatePath) {
         this.menu = menu;
         this.name = name;
         this.isBoard = isBoard;
         this.uploadDepartments = uploadDepartments;
         this.templatePath = templatePath;
+        this.isActive = true;
     }
 
     @Override

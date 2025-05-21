@@ -2,114 +2,122 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>게시글 작성</title>
-    <link rel="stylesheet" href="/css/home.css">
+	<title>게시글 작성</title>
+	<link rel="stylesheet" href="/css/home.css">
 </head>
 <body>
 
 <!-- 상단 헤더 -->
 <header style="display: flex; justify-content: flex-end; align-items: center; padding: 10px;">
-    <a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
-
-    <form action="/logout" method="post" style="margin: 0;">
-        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-        <button type="submit" style="background-color: transparent; border: none; color: #007bff; cursor: pointer;">
-            로그아웃
-        </button>
-    </form>
+	<a href="/home" style="margin-right: 10px; text-decoration: none; color: #007bff;">Home</a>
+	
+	<form action="/logout" method="post" style="margin: 0;">
+		<input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+		<button type="submit" style="background-color: transparent; border: none; color: #007bff; cursor: pointer;">
+			로그아웃
+		</button>
+	</form>
 </header>
 
 <h1>게시글 작성</h1>
 
 <!-- ✅ 메뉴 -->
 <nav>
-    <div th:each="menu : ${menus}">
-        <a href="#" th:attr="data-menu-id=${menu.id}" th:text="${menu.name}" onclick="toggleSubMenu(event)"></a>
-    </div>
+	<div th:each="menu : ${menus}">
+		<a href="#" th:attr="data-menu-id=${menu.id}" th:text="${menu.name}" onclick="toggleSubMenu(event)"></a>
+	</div>
 </nav>
 
 <!-- ✅ 서브 메뉴 -->
 <div th:each="menu : ${menus}" class="submenu-container" th:attr="id='submenu-' + ${menu.id}">
-    <div class="submenu" th:if="${menu.subMenus != null and !menu.subMenus.isEmpty()}">
-        <div th:each="sub : ${menu.subMenus}">
-            <a th:if="${sub.name == '연차캘린더'}"
-               th:text="${sub.name}"
-               th:href="@{/schedule/calendar}"></a>
-
-            <a th:if="${sub.name != '연차캘린더' and sub.board != null}"
-               th:text="${sub.name}"
-               th:href="@{'/boards/submenu/' + ${sub.id}}"></a>
-
-            <a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath != null}"
-               th:text="${sub.name}"
-               th:href="@{'/submenu/view/' + ${sub.id}}"></a>
-
-            <a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath == null}"
-               href="#" th:text="${sub.name}"></a>
-        </div>
-    </div>
+	<div class="submenu" th:if="${menu.subMenus != null and !menu.subMenus.isEmpty()}">
+		<div th:each="sub : ${menu.subMenus}" th:if="${sub.isActive}">
+			<a th:if="${sub.name == '연차캘린더'}"
+			   th:text="${sub.name}"
+			   th:href="@{/schedule/calendar}"></a>
+			
+			<a th:if="${sub.name != '연차캘린더' and sub.board != null}"
+			   th:text="${sub.name}"
+			   th:href="@{'/boards/submenu/' + ${sub.id}}"></a>
+			
+			<a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath != null}"
+			   th:text="${sub.name}"
+			   th:href="@{'/submenu/view/' + ${sub.id}}"></a>
+			
+			<a th:if="${sub.name != '연차캘린더' and sub.board == null and sub.templatePath == null}"
+			   href="#" th:text="${sub.name}"></a>
+		</div>
+	</div>
 </div>
 
 <form th:object="${postForm}"
       th:action="@{/posts/submenu/{subMenuId}/create(subMenuId=${subMenuId})}"
       method="post"
       enctype="multipart/form-data">
-    <!-- 실제 Board ID 전달 -->
-    <input type="hidden" th:field="*{boardId}"/>
-    <!-- 서브메뉴 ID 전달 -->
-    <input type="hidden" name="subMenuId" th:value="${subMenuId}"/>
-
-    <label>제목:</label><br/>
-    <input type="text" th:field="*{title}" required/><br/><br/>
-
-    <label>내용:</label><br/>
-    <textarea th:field="*{content}" rows="10" cols="50" required></textarea><br/><br/>
-
-    <label>파일 첨부:</label><br/>
-    <input type="file" name="multipartFiles" multiple/><br/><br/>
-
-    <button type="submit">작성 완료</button>
+	<!-- 실제 Board ID 전달 -->
+	<input type="hidden" th:field="*{boardId}"/>
+	<!-- 서브메뉴 ID 전달 -->
+	<input type="hidden" name="subMenuId" th:value="${subMenuId}"/>
+	
+	<label>제목:</label><br/>
+	<input type="text" th:field="*{title}" required/><br/><br/>
+	
+	<label>내용:</label><br/>
+	<textarea th:field="*{content}" rows="10" cols="50" required></textarea><br/><br/>
+	
+	<label>파일 첨부:</label><br/>
+	
+	<div id="fileInputs"></div>
+	<br/>
+	
+	<button type="submit">작성 완료</button>
 </form>
 
-<!-- JavaScript로 미리보기 기능 구현 -->
 <script>
-    function previewFiles(input) {
-        const preview = document.getElementById('preview');
-        preview.innerHTML = ''; // 기존 미리보기 제거
+	function createFileInput() {
+		const wrapper = document.createElement("div");
+		wrapper.className = "file-input-wrapper";
 
-        const files = input.files;
-        if (!files) return;
+		const input = document.createElement("input");
+		input.type = "file";
+		input.name = "multipartFiles";
 
-        Array.from(files).forEach(file => {
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'preview-img';
-                    preview.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                const p = document.createElement('p');
-                p.textContent = `첨부됨: ${file.name}`;
-                preview.appendChild(p);
-            }
-        });
-    }
-    function toggleSubMenu(event) {
-    event.preventDefault();
-    const menuId = event.target.getAttribute("data-menu-id");
-    const subMenus = document.querySelectorAll(".submenu-container");
+		input.addEventListener("change", function () {
+			if (!wrapper.querySelector("button") && input.files.length > 0) {
+				const removeBtn = document.createElement("button");
+				removeBtn.type = "button";
+				removeBtn.textContent = "삭제";
+				removeBtn.style.marginLeft = "10px";
+				removeBtn.onclick = function () {
+					wrapper.remove();
+				};
 
-    subMenus.forEach(subMenu => {
-        if (subMenu.id === "submenu-" + menuId) {
-            subMenu.classList.toggle("active");
-        } else {
-            subMenu.classList.remove("active");
-        }
-    });
-}
+				wrapper.appendChild(removeBtn);
+				createFileInput();
+			}
+		});
+
+		wrapper.appendChild(input);
+		document.getElementById("fileInputs").appendChild(wrapper);
+	}
+
+	document.addEventListener("DOMContentLoaded", () => {
+		createFileInput();
+	});
+
+	function toggleSubMenu(event) {
+		event.preventDefault();
+		const menuId = event.target.getAttribute("data-menu-id");
+		const subMenus = document.querySelectorAll(".submenu-container");
+
+		subMenus.forEach(subMenu => {
+			if (subMenu.id === "submenu-" + menuId) {
+				subMenu.classList.toggle("active");
+			} else {
+				subMenu.classList.remove("active");
+			}
+		});
+	}
 </script>
 
 </body>
